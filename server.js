@@ -4,6 +4,10 @@ const cors = require('cors');
 const auth = require('./routes/auth');
 const http = require('http');
 const { Server } = require("socket.io");
+const jwt = require('jsonwebtoken');
+const posts = require('./routes/posts');
+const authMiddleware = require('./middleware/auth');
+
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -24,16 +28,17 @@ io.on('connection', (socket) => {
   console.log('a user connected');
 });
 
-
-
-
-
-
 app.use(express.json());
 app.use('/api/auth', auth);
-app.post('/', (req, res) => {
+app.use('/api/posts', posts);
+app.get('/', (req, res) => {
   res.send('Hello World!');
 });
+
+app.get('/api/user', authMiddleware,  (req, res) => {
+  res.send('Hello World!');
+});
+
 
 
 server.listen(3000, () => console.log('Server running on port 3000'));

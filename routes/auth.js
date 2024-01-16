@@ -1,18 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');
-const mysql = require('mysql2');
+const db = require('../db');
 
 const bcrypt = require('bcrypt');
 
 const saltRounds = 10;
 
-const db = mysql.createConnection({
-  user: "root",
-  host: "localhost",
-  password: "K1llernet",
-  database: "socioloom"
-})
 
 router.post("/register", (req, res) => { 
   const username = req.body.username;
@@ -64,6 +58,14 @@ router.post("/register", (req, res) => {
                       token: token
                     });
                   });
+                  db.query(
+                    "INSERT INTO profile (profile_id, display_name) VALUES (?,?)",
+                    [result.insertId, displayName],
+                    (err, result) => {
+                      if(err)
+                        console.log(err);
+                    }
+                  );
                 }
               );
             });
@@ -92,7 +94,7 @@ router.post("/login", (req, res) => {
               username: result[0].username,
               email: result[0].email,
               displayName: result[0].displayName,
-              id: result[0].id
+              id: result[0].user_id
             }, "secretkey", (err, token) => {
               res.json({
                 token: token
