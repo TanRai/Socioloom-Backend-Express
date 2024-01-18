@@ -13,14 +13,15 @@ const compressionOptions = {
 
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.get("/", authMiddleware, (req, res) => {
+router.get("/:id", authMiddleware, (req, res) => {
+  const id = req.params.id;
   db.query(
     `SELECT *
     FROM user
     INNER JOIN profile ON user.user_id = profile.profile_id
     Where user.user_id = ?
     limit 1`,
-    [req.user.id],
+    [id],
     (err, result) => {
       if (err) console.log(err.message);
       res.json({
