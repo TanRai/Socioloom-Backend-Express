@@ -88,8 +88,8 @@ router.get("/personal", authMiddleware, (req, res) => {
             user.username,
             profile.display_name,
             profile.profile_picture,
-            COUNT(likes.like_id) AS like_count,
-            COUNT(replies.reply_id) AS reply_count,
+            COUNT(distinct likes.like_id) AS like_count,
+            COUNT(distinct replies.reply_id) AS reply_count,
             COUNT(CASE WHEN likes.user_id = ? THEN likes.like_id END) > 0 AS user_liked
           FROM post
           INNER JOIN user ON post.user_id = user.user_id
@@ -120,8 +120,8 @@ router.get("/personal/user", authMiddleware, (req, res) => {
             user.username,
             profile.display_name,
             profile.profile_picture,
-            COUNT(likes.like_id) AS like_count,
-            COUNT(replies.reply_id) AS reply_count,
+            COUNT(distinct likes.like_id) AS like_count,
+            COUNT(distinct replies.reply_id) AS reply_count,
             COUNT(CASE WHEN likes.user_id = ? THEN likes.like_id END) > 0 AS user_liked
           FROM post
           INNER JOIN user ON post.user_id = user.user_id
@@ -149,8 +149,8 @@ router.get("/personal/:id", authMiddleware, (req, res) => {
             user.username,
             profile.display_name,
             profile.profile_picture,
-            COUNT(likes.like_id) AS like_count,
-            COUNT(replies.reply_id) AS reply_count,
+            COUNT(distinct likes.like_id) AS like_count,
+            COUNT(distinct replies.reply_id) AS reply_count,
             COUNT(CASE WHEN likes.user_id = ? THEN likes.like_id END) > 0 AS user_liked
           FROM post
           INNER JOIN user ON post.user_id = user.user_id
@@ -239,14 +239,14 @@ router.get("/interests", authMiddleware, (req, res) => {
             user.username,
             profile.display_name,
             profile.profile_picture,
-            COUNT(likes.like_id) AS like_count,
-            COUNT(replies.reply_id) AS reply_count,
-            COUNT(CASE WHEN likes.user_id = ? THEN likes.like_id END) > 0 AS user_liked
+            COUNT(distinct interest_likes.like_id) AS like_count,
+            COUNT(distinct interest_replies.reply_id) AS reply_count,
+            COUNT(CASE WHEN interest_likes.user_id = ? THEN interest_likes.like_id END) > 0 AS user_liked
           FROM interest_post
           INNER JOIN user ON interest_post.user_id = user.user_id
           INNER JOIN profile ON interest_post.user_id = profile.profile_id
-          LEFT JOIN likes ON interest_post.post_id = likes.post_id
-          LEFT JOIN replies ON interest_post.post_id = replies.post_id
+          LEFT JOIN interest_likes ON interest_post.post_id = interest_likes.post_id
+          LEFT JOIN interest_replies ON interest_post.post_id = interest_replies.post_id
           GROUP BY interest_post.post_id
           ORDER BY interest_post.post_id DESC
           LIMIT 10 offset ?`;
@@ -268,14 +268,14 @@ router.get("/interests/:id", authMiddleware, (req, res) => {
             user.username,
             profile.display_name,
             profile.profile_picture,
-            COUNT(likes.like_id) AS like_count,
-            COUNT(replies.reply_id) AS reply_count,
-            COUNT(CASE WHEN likes.user_id = ? THEN likes.like_id END) > 0 AS user_liked
+            COUNT(distinct interest_likes.like_id) AS like_count,
+            COUNT(distinct interest_replies.reply_id) AS reply_count,
+            COUNT(CASE WHEN interest_likes.user_id = ? THEN interest_likes.like_id END) > 0 AS user_liked
           FROM interest_post
           INNER JOIN user ON interest_post.user_id = user.user_id
           INNER JOIN profile ON interest_post.user_id = profile.profile_id
-          LEFT JOIN likes ON interest_post.post_id = likes.post_id
-          LEFT JOIN replies ON interest_post.post_id = replies.post_id
+          LEFT JOIN interest_likes ON interest_post.post_id = interest_likes.post_id
+          LEFT JOIN interest_replies ON interest_post.post_id = interest_replies.post_id
           WHERE interest_post.post_id = ?
           GROUP BY interest_post.post_id
           LIMIT 1`;

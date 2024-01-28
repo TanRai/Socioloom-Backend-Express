@@ -9,6 +9,7 @@ const posts = require("./routes/posts");
 const user = require("./routes/user");
 const authMiddleware = require("./middleware/auth");
 const replies = require("./routes/replies");
+const likes = require("./routes/likes");
 
 app.use(
   cors({
@@ -36,6 +37,7 @@ app.use("/api/auth", auth);
 app.use("/api/posts", posts);
 app.use("/api/user", user);
 app.use("/api/replies", replies);
+app.use("/api/likes", likes);
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
