@@ -74,12 +74,18 @@ router.post("/personal", authMiddleware, upload.any(), (req, res) => {
 });
 
 router.get("/personal", authMiddleware, (req, res) => {
-  const { pageNumber } = req.query;
+  const { pageNumber, search, explore } = req.query;
+  const searchLike = search ? ` WHERE post.post_text LIKE '%${search}%'` : "";
+  const followLike = !explore
+    ? `Where post.user_id in (select distinct following_id from follow where follower_id = ${req.user.id}) or post.user_id = ${req.user.id}`
+    : "";
+
   const pageSize = 10;
   const offset = (pageNumber - 1) * pageSize;
   console.log("HERE I AM");
   console.log(offset);
-  query = `SELECT 
+  query =
+    `SELECT 
             post.post_id,
             post.post_text,
             post.post_image,
@@ -95,8 +101,11 @@ router.get("/personal", authMiddleware, (req, res) => {
           INNER JOIN user ON post.user_id = user.user_id
           INNER JOIN profile ON post.user_id = profile.profile_id
           LEFT JOIN likes ON post.post_id = likes.post_id
-          LEFT JOIN replies ON post.post_id = replies.post_id
-          GROUP BY post.post_id
+          LEFT JOIN replies ON post.post_id = replies.post_id` +
+    searchLike +
+    ` ` +
+    followLike +
+    ` GROUP BY post.post_id
           ORDER BY post.post_id DESC
           LIMIT 10 offset ?`;
   db.query(query, [req.user.id, offset], (err, result) => {
@@ -178,7 +187,7 @@ router.post("/interests", authMiddleware, upload.any(), (req, res) => {
         base64Image = compressedBuffer.toString("base64");
         console.log(info);
         db.query(
-          "INSERT INTO interest_post (user_id, post_text, post_image, interest_type) VALUES (?,?,?,?)",
+          "INSERT INTO interest_post (user_id, post_text, post_image, interest_id) VALUES (?,?,?,?)",
           [req.user.id, req.body.PostText, base64Image, req.body.PostInterest],
           (err, result) => {
             if (err) console.log(err.message);
@@ -191,7 +200,7 @@ router.post("/interests", authMiddleware, upload.any(), (req, res) => {
       });
   } else if (req.body.PostText) {
     db.query(
-      "INSERT INTO interest_post (user_id, post_text, interest_type) VALUES (?,?,?)",
+      "INSERT INTO interest_post (user_id, post_text, interest_id) VALUES (?,?,?)",
       [req.user.id, req.body.PostText, req.body.PostInterest],
       (err, result) => {
         if (err) console.log(err);
@@ -208,7 +217,7 @@ router.post("/interests", authMiddleware, upload.any(), (req, res) => {
         base64Image = compressedBuffer.toString("base64");
         console.log(info);
         db.query(
-          "INSERT INTO interest_post (user_id, post_image, interest_type) VALUES (?,?,?)",
+          "INSERT INTO interest_post (user_id, post_image, interest_id) VALUES (?,?,?)",
           [req.user.id, base64Image, req.body.PostInterest],
           (err, result) => {
             if (err) console.log(err);
@@ -225,17 +234,24 @@ router.post("/interests", authMiddleware, upload.any(), (req, res) => {
 });
 
 router.get("/interests", authMiddleware, (req, res) => {
-  const { pageNumber } = req.query;
+  const { pageNumber, search, explore } = req.query;
+  const searchLike = search
+    ? ` WHERE interest_post.post_text LIKE '%${search}%'`
+    : "";
+  const interestLike = !explore
+    ? `Where interest_post.interest_id in (select distinct interest_id from subscribed_interest where user_id = ${req.user.id})`
+    : "";
   const pageSize = 10;
   const offset = (pageNumber - 1) * pageSize;
   console.log(offset);
-  query = `SELECT 
+  query =
+    `SELECT 
             interest_post.post_id,
             interest_post.post_text,
             interest_post.post_image,
             interest_post.user_id,
             interest_post.time_posted,
-            interest_post.interest_type,
+            interest.title,
             user.username,
             profile.display_name,
             profile.profile_picture,
@@ -245,9 +261,13 @@ router.get("/interests", authMiddleware, (req, res) => {
           FROM interest_post
           INNER JOIN user ON interest_post.user_id = user.user_id
           INNER JOIN profile ON interest_post.user_id = profile.profile_id
+          INNER JOIN interest ON interest.interest_id = interest_post.interest_id
           LEFT JOIN interest_likes ON interest_post.post_id = interest_likes.post_id
-          LEFT JOIN interest_replies ON interest_post.post_id = interest_replies.post_id
-          GROUP BY interest_post.post_id
+          LEFT JOIN interest_replies ON interest_post.post_id = interest_replies.post_id` +
+    searchLike +
+    ` ` +
+    interestLike +
+    ` GROUP BY interest_post.post_id
           ORDER BY interest_post.post_id DESC
           LIMIT 10 offset ?`;
   db.query(query, [req.user.id, offset], (err, result) => {
@@ -264,7 +284,7 @@ router.get("/interests/:id", authMiddleware, (req, res) => {
             interest_post.post_image,
             interest_post.user_id,
             interest_post.time_posted,
-            interest_post.interest_type,
+            interest.title,
             user.username,
             profile.display_name,
             profile.profile_picture,
@@ -274,6 +294,7 @@ router.get("/interests/:id", authMiddleware, (req, res) => {
           FROM interest_post
           INNER JOIN user ON interest_post.user_id = user.user_id
           INNER JOIN profile ON interest_post.user_id = profile.profile_id
+          INNER JOIN interest ON interest.interest_id = interest_post.interest_id
           LEFT JOIN interest_likes ON interest_post.post_id = interest_likes.post_id
           LEFT JOIN interest_replies ON interest_post.post_id = interest_replies.post_id
           WHERE interest_post.post_id = ?

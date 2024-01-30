@@ -4,12 +4,13 @@ const cors = require("cors");
 const auth = require("./routes/auth");
 const http = require("http");
 const { Server } = require("socket.io");
-const jwt = require("jsonwebtoken");
 const posts = require("./routes/posts");
 const user = require("./routes/user");
-const authMiddleware = require("./middleware/auth");
 const replies = require("./routes/replies");
 const likes = require("./routes/likes");
+const people = require("./routes/people");
+const follow = require("./routes/follow");
+const interests = require("./routes/interests");
 
 app.use(
   cors({
@@ -38,6 +39,9 @@ app.use("/api/posts", posts);
 app.use("/api/user", user);
 app.use("/api/replies", replies);
 app.use("/api/likes", likes);
+app.use("/api/people", people);
+app.use("/api/follow", follow);
+app.use("/api/interests", interests);
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
