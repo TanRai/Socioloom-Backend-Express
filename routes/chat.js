@@ -45,7 +45,7 @@ router.get("/chatList", authMiddleware, (req, res) => {
                 INNER JOIN profile AS profile2 ON chat.user_2 = profile2.profile_id
                 INNER JOIN user AS user1 ON user1.user_id = chat.user_1
                 INNER JOIN user AS user2 ON user2.user_id = chat.user_2
-                WHERE user_1 = 1 OR user_2 = 1`;
+                WHERE user_1 = ? OR user_2 = ?`;
   db.query(query, [userId, userId], (err, result) => {
     if (err) console.log(err.message);
     res.json(result);
@@ -71,7 +71,7 @@ router.get("/getChatInfo/:chatId", authMiddleware, (req, res) => {
                 FROM chat 
                 INNER JOIN profile AS user1 ON chat.user_1 = user1.profile_id
                 INNER JOIN profile AS user2 ON chat.user_2 = user2.profile_id
-                WHERE chat_id = 2`;
+                WHERE chat_id = ?`;
   db.query(query, [chatId], (err, result) => {
     if (err) console.log(err.message);
     res.json(result[0]);
