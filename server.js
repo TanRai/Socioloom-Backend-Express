@@ -14,9 +14,21 @@ const interests = require("./routes/interests");
 const chat = require("./routes/chat");
 const db = require("./db");
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://192.168.0.3:5173",
+  "http://103.119.100.243:5173",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
@@ -26,7 +38,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
