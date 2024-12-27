@@ -13,12 +13,11 @@ const follow = require("./routes/follow");
 const interests = require("./routes/interests");
 const chat = require("./routes/chat");
 const db = require("./db");
+require("dotenv").config();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "http://192.168.0.3:5173",
-  "http://103.119.100.243:5173",
-];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : [];
 
 app.use(
   cors({
